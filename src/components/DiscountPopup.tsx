@@ -58,10 +58,10 @@ export function DiscountPopup() {
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center p-4 animate-fade-in"
+            className="fixed inset-0 flex items-center justify-center p-3 sm:p-4 animate-fade-in"
             style={{ zIndex: 99999, backgroundColor: "rgba(17, 17, 17, 0.8)", backdropFilter: "blur(12px)" }}
         >
-            <div className="bg-void border border-bone/15 max-w-md w-full p-8 md:p-10 relative text-center animate-scale-up" style={{ boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
+            <div className="bg-void border border-bone/15 max-w-md w-full p-6 sm:p-8 md:p-10 relative text-center animate-scale-up" style={{ boxShadow: "0 0 50px rgba(0,0,0,0.8)" }}>
                 {/* Close Button */}
                 <button
                     onClick={handleDismiss}

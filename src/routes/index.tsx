@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Trash2, Plus, Minus, ShoppingBag, Sparkles } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, Sparkles, Menu, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -253,6 +253,7 @@ function Index() {
 
   const [cart, setCart] = useState<{ product: (typeof products)[0]; size: string; quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<(typeof products)[0] | null>(null);
   const [isProductOpen, setIsProductOpen] = useState(false);
   const [productDrawerSize, setProductDrawerSize] = useState("M");
@@ -260,11 +261,18 @@ function Index() {
   const [cartBounce, setCartBounce] = useState(false);
   const [activeProductIndex, setActiveProductIndex] = useState(0);
   const activeProduct = products[activeProductIndex] || products[0];
+  const featuredProduct = activeProduct;
 
   const cartBtnRef = useRef<HTMLButtonElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<any[]>([]);
   const animFrameRef = useRef<number | null>(null);
+
+  const handleFeaturedProductChange = (nextIndex: number) => {
+    const nextProduct = products[nextIndex] || products[0];
+    setActiveProductIndex(nextIndex);
+    setFeaturedSize(nextProduct?.sizes?.[0] || "M");
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -273,9 +281,17 @@ function Index() {
         canvasRef.current.height = window.innerHeight;
       }
     };
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!featuredProduct) return;
+    if (!featuredProduct.sizes.includes(featuredSize)) {
+      setFeaturedSize(featuredProduct.sizes[0] || "M");
+    }
+  }, [featuredProduct, featuredSize]);
 
 
   const triggerCartBounce = () => {
@@ -559,18 +575,22 @@ function Index() {
     spawnParticles(window.innerWidth / 2, window.innerHeight / 2);
   };
 
-
-  const featuredProduct = activeProduct;
-
   return (
     <div className="min-h-screen bg-void text-bone relative overflow-x-hidden">
       {/* Canvas for Flying Particles */}
-      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-[9999]" />
+      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-40" />
 
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-void/85 backdrop-blur-md border-b border-bone/10">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4 md:gap-10">
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 text-bone hover:text-silver transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
             <a href="#" aria-label="CRUX home" className="flex items-center hover:opacity-85 transition-opacity">
               <img src={cruxLogo} alt="CRUX" className="h-10 w-auto" />
             </a>
@@ -608,12 +628,60 @@ function Index() {
               <span className="absolute -top-0.5 -right-1 w-1.5 h-1.5 bg-bone rounded-full animate-pulse shadow-[0_0_8px_#ECE8E1]" />
             )}
           </button>
+
+
         </div>
       </nav>
 
+      {/* Mobile Menu Drawer */}
+      <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <SheetContent side="left" className="w-[80vw] max-w-xs bg-void border-r border-bone/10 text-bone p-8 sm:p-10 flex flex-col z-100 outline-none">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation Menu</SheetTitle>
+            <SheetDescription>Main site navigation</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-10 sm:gap-12 mt-8 sm:mt-10">
+            <a
+              href="#shop"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg tracking-[0.3em] uppercase text-bone hover:text-silver transition-all"
+            >
+              Shop
+            </a>
+            <a
+              href="#archive"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg tracking-[0.3em] uppercase text-bone hover:text-silver transition-all"
+            >
+              Archive
+            </a>
+            <a
+              href="#story"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg tracking-[0.3em] uppercase text-bone hover:text-silver transition-all"
+            >
+              Story
+            </a>
+            <a
+              href="#contact"
+              onClick={() => setIsMenuOpen(false)}
+              className="text-lg tracking-[0.3em] uppercase text-bone hover:text-silver transition-all"
+            >
+              Contact
+            </a>
+          </div>
+          <div className="mt-auto py-8 sm:py-10 border-t border-bone/10">
+            <img src={cruxLogo} alt="CRUX" className="h-8 w-auto mb-6 opacity-50" />
+            <p className="text-[10px] tracking-[0.2em] uppercase text-silver font-mono">
+              Luxury Decay / Est. 2024
+            </p>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Hero */}
-      <section className="relative py-28 md:py-40 border-b border-bone/10 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center animate-reveal">
+      <section className="relative py-16 sm:py-28 md:py-40 border-b border-bone/10 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center animate-reveal">
           <h1 className="mb-10">
             <span className="sr-only">CRUX</span>
             <img
@@ -622,12 +690,12 @@ function Index() {
               className="w-[min(80vw,640px)] h-auto mx-auto hover:scale-[1.02] transition-transform duration-700"
             />
           </h1>
-          <p className="text-sm md:text-base tracking-[0.5em] uppercase text-silver mb-14 animate-pulse">
+          <p className="text-xs sm:text-sm md:text-base tracking-[0.3em] sm:tracking-[0.5em] uppercase text-silver mb-10 sm:mb-14 animate-pulse">
             Reverence Embodied
           </p>
           <a
             href="#archive"
-            className="group inline-flex items-center gap-3 bg-bone text-void px-10 py-4 ring-1 ring-bone hover:bg-transparent hover:text-bone transition-all duration-500 btn-glow-sweep"
+            className="group inline-flex items-center gap-3 bg-bone text-void px-6 sm:px-10 py-3.5 sm:py-4 ring-1 ring-bone hover:bg-transparent hover:text-bone transition-all duration-500 btn-glow-sweep"
           >
             <span className="text-[11px] tracking-[0.3em] uppercase font-medium">Enter the Archive</span>
             <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
@@ -642,8 +710,8 @@ function Index() {
       </section>
 
       {/* Featured Drop */}
-      <section id="shop" className="py-24 md:py-32 bg-ash/20 border-b border-bone/10">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="shop" className="py-16 sm:py-24 md:py-32 bg-ash/20 border-b border-bone/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             <div className="lg:col-span-7">
               <div className="relative aspect-3/4 overflow-hidden bg-ash border border-bone/10 shimmer-card group">
@@ -656,8 +724,26 @@ function Index() {
               </div>
             </div>
             <div className="lg:col-span-5">
+              <label className="block mb-6">
+                <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-silver block mb-3">
+                  Select Piece
+                </span>
+                <select
+                  value={activeProductIndex}
+                  onChange={(event) => handleFeaturedProductChange(Number(event.target.value))}
+                  onInput={(event) => handleFeaturedProductChange(Number(event.currentTarget.value))}
+                  className="w-full bg-void border border-bone/25 text-bone px-4 py-3 text-[11px] font-mono tracking-[0.18em] uppercase outline-none transition-colors cursor-pointer hover:border-bone focus:border-bone"
+                  aria-label="Select product"
+                >
+                  {products.map((product, index) => (
+                    <option key={product.name} value={index} className="bg-void text-bone">
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <span className="text-[11px] tracking-[0.3em] uppercase text-silver mb-6 block">{featuredProduct.ref}</span>
-              <h2 className="font-serif text-4xl md:text-5xl tracking-wide mb-8 uppercase leading-tight whitespace-pre-line">
+              <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl tracking-wide mb-6 sm:mb-8 uppercase leading-tight whitespace-pre-line">
                 {featuredProduct.name.replace(/\s+/g, '\n')}
               </h2>
               <p className="text-silver leading-relaxed mb-8 max-w-md font-light">
@@ -672,6 +758,7 @@ function Index() {
                 <div className="flex gap-2">
                   {featuredProduct.sizes.map((size: string) => (
                     <button
+                      type="button"
                       key={size}
                       onClick={() => setFeaturedSize(size)}
                       className={`w-10 h-10 border text-[10px] font-mono tracking-widest uppercase transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer ${featuredSize === size
@@ -690,6 +777,7 @@ function Index() {
                 <span className="text-[11px] uppercase tracking-[0.25em] text-silver font-mono">Preorder Limited</span>
               </div>
               <button
+                type="button"
                 onClick={(e) => addToCart(featuredProduct, featuredSize, e)}
                 className="w-full bg-transparent border border-bone/25 hover:bg-bone hover:text-void py-4 transition-all duration-500 text-[11px] tracking-[0.3em] uppercase btn-glow-sweep cursor-pointer font-medium"
               >
@@ -701,28 +789,28 @@ function Index() {
       </section>
 
       {/* Archive Grid */}
-      <section id="archive" className="py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-end mb-16">
+      <section id="archive" className="py-16 sm:py-24 md:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-end mb-10 sm:mb-16">
             <div>
-              <h3 className="font-serif text-3xl md:text-4xl tracking-[0.15em] uppercase">Archive Catalog</h3>
-              <p className="text-[11px] tracking-[0.3em] uppercase text-silver mt-3">Permanent Collection</p>
+              <h3 className="font-serif text-xl sm:text-3xl md:text-4xl tracking-[0.08em] sm:tracking-[0.15em] uppercase">Archive Catalog</h3>
+              <p className="text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-silver mt-2 sm:mt-3">Permanent Collection</p>
             </div>
-            <span className="text-[11px] tracking-[0.3em] uppercase text-silver font-mono">Vol. 024–025</span>
+            <span className="text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-silver font-mono">Vol. 024–025</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((p) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {products.map((p, index) => (
               <article
                 key={p.name}
                 onClick={() => {
-                  setActiveProductIndex(products.indexOf(p));
+                  handleFeaturedProductChange(index);
                   window.scrollTo({ top: document.getElementById('shop')?.offsetTop ? document.getElementById('shop')!.offsetTop - 80 : 0, behavior: 'smooth' });
                   // We still keep the drawer as an option or remove it? 
                   // User said "one page", let's keep it for now but prioritize the main view
                   // setSelectedProduct(p);
                   // setIsProductOpen(true);
                 }}
-                className="bg-void p-6 group cursor-pointer border border-bone/0 hover:border-bone/15 transition-all duration-500 shimmer-card flex flex-col justify-between"
+                className="bg-void p-4 sm:p-6 group cursor-pointer border border-bone/0 hover:border-bone/15 transition-all duration-500 shimmer-card flex flex-col justify-between"
               >
                 <div className="relative aspect-4/5 bg-ash overflow-hidden mb-6 border border-bone/5">
                   <img
@@ -758,26 +846,26 @@ function Index() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-center shrink-0 font-serif text-2xl md:text-4xl tracking-[0.5em] uppercase font-semibold"
+              className="flex items-center shrink-0 font-serif text-lg sm:text-2xl md:text-4xl tracking-[0.3em] sm:tracking-[0.5em] uppercase font-semibold"
             >
-              <span className="px-10">Chaos</span><span className="opacity-45">✦</span>
-              <span className="px-10">Faith</span><span className="opacity-45">✦</span>
-              <span className="px-10">Pain</span><span className="opacity-45">✦</span>
-              <span className="px-10">Beauty</span><span className="opacity-45">✦</span>
+              <span className="px-4 sm:px-10">Chaos</span><span className="opacity-45">✦</span>
+              <span className="px-4 sm:px-10">Faith</span><span className="opacity-45">✦</span>
+              <span className="px-4 sm:px-10">Pain</span><span className="opacity-45">✦</span>
+              <span className="px-4 sm:px-10">Beauty</span><span className="opacity-45">✦</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* Ethos Story */}
-      <section id="story" className="py-24 md:py-32 border-b border-bone/10 relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 text-center z-10 relative">
+      <section id="story" className="py-16 sm:py-24 md:py-32 border-b border-bone/10 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center z-10 relative">
           <img src={markCross} alt="" className="w-10 mx-auto mb-10 opacity-50 hover:rotate-180 transition-transform duration-1000" />
           <span className="text-[11px] tracking-[0.3em] uppercase text-silver mb-6 block">Our Ethos</span>
-          <h2 className="font-serif text-4xl md:text-6xl uppercase tracking-[0.08em] mb-10 leading-tight">
+          <h2 className="font-serif text-2xl sm:text-4xl md:text-6xl uppercase tracking-[0.04em] sm:tracking-[0.08em] mb-8 sm:mb-10 leading-tight">
             Refined through<br />the struggle.
           </h2>
-          <p className="text-silver leading-relaxed text-lg font-light max-w-2xl mx-auto">
+          <p className="text-silver leading-relaxed text-sm sm:text-lg font-light max-w-2xl mx-auto">
             CRUX exists at the intersection of high fashion and subculture. We
             don't believe in perfection — we believe in the beauty of the worn,
             the repaired, the resilient. Every piece is an archive in the
@@ -787,10 +875,10 @@ function Index() {
       </section>
 
       {/* Newsletter */}
-      <section id="contact" className="py-24 md:py-32">
-        <div className="max-w-xl mx-auto px-6 text-center">
+      <section id="contact" className="py-16 sm:py-24 md:py-32">
+        <div className="max-w-xl mx-auto px-4 sm:px-6 text-center">
           <img src={markStar} alt="" className="w-8 mx-auto mb-8 opacity-40 animate-pulse" />
-          <h2 className="font-serif text-3xl md:text-4xl tracking-[0.15em] uppercase mb-6">Join the Order</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl tracking-[0.08em] sm:tracking-[0.15em] uppercase mb-6">Join the Order</h2>
           <p className="text-silver text-[12px] tracking-[0.25em] uppercase mb-12">
             Early access to drops and archival releases.
           </p>
@@ -812,13 +900,13 @@ function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-bone/10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-10">
+      <footer className="py-8 sm:py-12 border-t border-bone/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-10">
             <img src={cruxLogo} alt="CRUX" className="h-8 w-auto" />
             <span className="text-[10px] tracking-[0.3em] uppercase text-silver font-mono">Luxury Decay / Est. 2024</span>
           </div>
-          <div className="flex gap-8 text-[10px] tracking-[0.25em] uppercase text-silver">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-[10px] tracking-[0.25em] uppercase text-silver">
             <a href="#" className="hover:text-bone transition-colors">Instagram</a>
             <a href="#" className="hover:text-bone transition-colors">TikTok</a>
             <a href="#" className="hover:text-bone transition-colors">Shipping</a>
