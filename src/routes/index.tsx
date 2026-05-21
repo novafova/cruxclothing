@@ -1,14 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Trash2, Plus, Minus, ShoppingBag, Sparkles, Menu, X } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, Menu } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetClose,
 } from "@/components/ui/sheet";
 
 import featuredDenim from "@/assets/featured-denim.png";
@@ -742,11 +741,14 @@ function Index() {
                   ))}
                 </select>
               </label>
-              <span className="text-[11px] tracking-[0.3em] uppercase text-silver mb-6 block">{featuredProduct.ref}</span>
-              <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl tracking-wide mb-6 sm:mb-8 uppercase leading-tight whitespace-pre-line">
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <span className="text-[11px] tracking-[0.3em] uppercase text-silver block">{featuredProduct.ref}</span>
+                <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-bone/80 animate-status-pulse" aria-hidden />
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-6xl tracking-[0.04em] mb-5 sm:mb-7 uppercase leading-[0.92] whitespace-pre-line">
                 {featuredProduct.name.replace(/\s+/g, '\n')}
               </h2>
-              <p className="text-silver leading-relaxed mb-8 max-w-md font-light">
+              <p className="text-silver leading-relaxed mb-8 max-w-md font-light text-sm sm:text-base">
                 {featuredProduct.description}
               </p>
 
@@ -761,8 +763,8 @@ function Index() {
                       type="button"
                       key={size}
                       onClick={() => setFeaturedSize(size)}
-                      className={`w-10 h-10 border text-[10px] font-mono tracking-widest uppercase transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer ${featuredSize === size
-                        ? "bg-bone text-void border-bone shadow-[0_0_12px_rgba(236,232,225,0.25)] font-semibold"
+                      className={`size-button w-10 h-10 border text-[10px] font-mono tracking-widest uppercase transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer ${featuredSize === size
+                        ? "is-selected bg-bone text-void border-bone font-semibold"
                         : "border-bone/25 text-bone hover:border-bone"
                         }`}
                     >
@@ -779,7 +781,7 @@ function Index() {
               <button
                 type="button"
                 onClick={(e) => addToCart(featuredProduct, featuredSize, e)}
-                className="w-full bg-transparent border border-bone/25 hover:bg-bone hover:text-void py-4 transition-all duration-500 text-[11px] tracking-[0.3em] uppercase btn-glow-sweep cursor-pointer font-medium"
+                className="dopamine-button w-full bg-transparent border border-bone/25 hover:bg-bone hover:text-void py-4 transition-all duration-500 text-[11px] tracking-[0.3em] uppercase btn-glow-sweep cursor-pointer font-medium"
               >
                 Add to Collection
               </button>
@@ -799,18 +801,20 @@ function Index() {
             <span className="text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-silver font-mono">Vol. 024–025</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {products.map((p, index) => (
+            {products.map((p, index) => {
+              const isActive = index === activeProductIndex;
+              return (
               <article
                 key={p.name}
+                aria-current={isActive ? "true" : undefined}
                 onClick={() => {
                   handleFeaturedProductChange(index);
                   window.scrollTo({ top: document.getElementById('shop')?.offsetTop ? document.getElementById('shop')!.offsetTop - 80 : 0, behavior: 'smooth' });
-                  // We still keep the drawer as an option or remove it? 
-                  // User said "one page", let's keep it for now but prioritize the main view
-                  // setSelectedProduct(p);
-                  // setIsProductOpen(true);
                 }}
-                className="bg-void p-4 sm:p-6 group cursor-pointer border border-bone/0 hover:border-bone/15 transition-all duration-500 shimmer-card flex flex-col justify-between"
+                className={`archive-card bg-void p-4 sm:p-6 group cursor-pointer border transition-all duration-500 flex flex-col justify-between ${isActive
+                  ? "is-active border-bone/35 bg-bone/[0.035]"
+                  : "border-bone/0 hover:border-bone/15"
+                  }`}
               >
                 <div className="relative aspect-4/5 bg-ash overflow-hidden mb-6 border border-bone/5">
                   <img
@@ -819,23 +823,20 @@ function Index() {
                     className="w-full h-full object-cover img-zoom"
                     loading="lazy"
                   />
-                  {/* Inspect Overlay */}
-                  <div className="absolute inset-0 bg-void/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                    <div className="border border-bone/20 bg-void/90 px-4 py-2 text-[10px] tracking-[0.3em] uppercase text-bone font-mono transition-transform duration-500 translate-y-3 group-hover:translate-y-0 flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-silver" />
-                      <span>Inspect Piece</span>
-                    </div>
-                  </div>
+                  {isActive && (
+                    <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-bone animate-status-pulse" aria-hidden />
+                  )}
                 </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-[12px] tracking-[0.2em] uppercase mb-1 font-serif group-hover:text-bone transition-colors">{p.name}</h4>
+                <div className="flex justify-between items-start gap-4">
+                  <div className="min-w-0">
                     <span className="text-[10px] text-silver font-mono tracking-wider">{p.ref}</span>
+                    <h4 className="mt-2 text-sm sm:text-base tracking-[0.13em] uppercase font-serif leading-tight group-hover:text-bone transition-colors">{p.name}</h4>
                   </div>
-                  <span className="text-sm font-serif">{p.displayPrice}</span>
+                  <span className="text-base sm:text-lg font-serif leading-none shrink-0">{p.displayPrice}</span>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
